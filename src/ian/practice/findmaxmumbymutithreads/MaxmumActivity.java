@@ -2,6 +2,7 @@ package ian.practice.findmaxmumbymutithreads;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import android.os.Bundle;
 import android.app.Activity;
@@ -16,11 +17,11 @@ import android.widget.Toast;
 public class MaxmumActivity extends Activity {
 
 	int threadNumber;
-	CountDownLatch startSignal = new CountDownLatch(1);
     CountDownLatch doneSignal;
     ExecutorService executor;
     int[] largeArray = new int[10000];
     int[] result;
+    int[][] dividedArray;
     long startTime;
     long endTime;
     long duration;
@@ -40,6 +41,14 @@ public class MaxmumActivity extends Activity {
 					Toast.makeText(MaxmumActivity.this, "please input a Thread Number", Toast.LENGTH_LONG).show();
 				}else{
 					threadNumber = Integer.parseInt(threadNum.getText().toString());
+					doneSignal = new CountDownLatch(threadNumber);
+	        		executor = Executors.newFixedThreadPool(threadNumber);
+	        		result = new int[threadNumber]; 
+	        		startTime = System.currentTimeMillis();
+	        		int maxmum = FindMaxmumInLargeArray(largeArray);
+	        		endTime = System.currentTimeMillis();
+	        		duration = startTime - endTime;
+					
 					durationMessage.setText("there are " + Integer.toString(threadNumber) + 
 							" threads ." + "duration is:" + Long.toString(duration));
 				}
@@ -56,4 +65,42 @@ public class MaxmumActivity extends Activity {
         return true;
     }
     
+    private int FindMaxmumInLargeArray(int[] largeArray){
+    	int maxmum = 0 ;
+    	return maxmum;
+    }
+    
+    
+	private int FindMaxmunInArray(int[] inputArray){
+		int maxmum = 0;
+	
+		for(int i=0; i < inputArray.length; i++){
+			if(inputArray[i]> maxmum)
+				maxmum = inputArray[i];
+		}
+		return maxmum;
+		
+	}
+    
+	class Worker implements Runnable {
+    	private final CountDownLatch doneSignal;
+    	private int[] input;
+    	private int maxValue;
+    	
+    	Worker(int[] inputArray, CountDownLatch doneSignal) {
+    		this.doneSignal = doneSignal;
+    		this.input =  inputArray;    		
+    	}   	
+
+
+		@Override
+		public void run() {
+			maxValue = FindMaxmunInArray(input);
+			writeMaxmumToResult(maxValue);
+			doneSignal.countDown();
+		}
+		
+		private void writeMaxmumToResult(int value){
+		}
+    }
 }
