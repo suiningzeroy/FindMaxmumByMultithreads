@@ -1,5 +1,7 @@
 package ian.practice.findmaxmumbymutithreads;
 
+import java.util.Arrays;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,7 +21,7 @@ public class MaxmumActivity extends Activity {
 	int threadNumber;
     CountDownLatch doneSignal;
     ExecutorService executor;
-    int[] largeArray = new int[10000];
+    int[] largeArray = new int[9];
     int[] result;
     int[][] dividedArray;
     long startTime;
@@ -45,9 +47,10 @@ public class MaxmumActivity extends Activity {
 	        		executor = Executors.newFixedThreadPool(threadNumber);
 	        		result = new int[threadNumber]; 
 	        		startTime = System.currentTimeMillis();
+	        		largeArray = initialLargeArray(50);
 	        		int maxmum = FindMaxmumInLargeArray(largeArray);
 	        		endTime = System.currentTimeMillis();
-	        		duration = startTime - endTime;
+	        		duration = endTime - startTime;
 					
 					durationMessage.setText("there are " + Integer.toString(threadNumber) + 
 							" threads ." + "duration is:" + Long.toString(duration));
@@ -67,9 +70,54 @@ public class MaxmumActivity extends Activity {
     
     private int FindMaxmumInLargeArray(int[] largeArray){
     	int maxmum = 0 ;
+    	//String s = null;
+    	int[][] dividedArray = DividLargeArrayIntoSmallOnes(largeArray,threadNumber);
+    	//for (int i=0; i < dividedArray.length; i++){
+    	//	s =  s + Arrays.toString(dividedArray[i]) + "|";
+    	//}
+    	//System.out.println("large array is " + Arrays.toString(largeArray));
+    	//System.out.println("dividedArray is "+ s);
     	return maxmum;
     }
     
+    private int[] initialLargeArray(int n){
+    	int[] largeArray = new int[n];
+    	Random rnd = new Random();
+    	
+    	for(int i=0; i < n; i++){
+    		largeArray[i] = rnd.nextInt(1000);
+    	}
+    	
+    	return largeArray;
+    }
+    
+    private int[][] DividLargeArrayIntoSmallOnes(int[] input,int count){
+    	int numberOfElements = getArrayElementsNumber(input,count);
+    	int[][] dividedArray = new int[count][numberOfElements];
+    	for(int i=0; i < count; i++){
+    		if (i != count - 1){
+    			dividedArray[i] = Arrays.copyOfRange(input, i*numberOfElements, ((i+1)*numberOfElements));
+    		}else{
+    			dividedArray[i] = Arrays.copyOfRange(input, i*numberOfElements, input.length);
+    		}
+    	}
+    	return dividedArray;
+    }
+    
+    private int getArrayElementsNumber(int[] input,int count){   	
+    	int numberOfElements = 0;
+    	
+    	if(input.length%count==0){
+    		numberOfElements = input.length/count;
+    	}
+    	else{
+    		 numberOfElements = input.length/count + 1;
+    	}
+    	
+    	System.out.println("numberOfElements is " + Integer.toString(numberOfElements));
+    	
+    	return numberOfElements;
+    }
     
 	private int FindMaxmunInArray(int[] inputArray){
 		int maxmum = 0;
