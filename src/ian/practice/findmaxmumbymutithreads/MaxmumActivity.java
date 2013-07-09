@@ -133,11 +133,13 @@ public class MaxmumActivity extends Activity {
 	class Worker implements Runnable {
     	private final CountDownLatch doneSignal;
     	private int[] input;
+    	private int resultIndex = 0;
     	private int maxValue;
     	
-    	Worker(int[] inputArray, CountDownLatch doneSignal) {
+    	Worker(int n, int[] inputArray, CountDownLatch doneSignal) {
     		this.doneSignal = doneSignal;
-    		this.input =  inputArray;    		
+    		this.input =  inputArray;  
+    		this.resultIndex = n;
     	}   	
 
 
@@ -149,6 +151,8 @@ public class MaxmumActivity extends Activity {
 		}
 		
 		private void writeMaxmumToResult(int value){
+			result[resultIndex] = value;
 		}
+		
     }
 }
