@@ -11,6 +11,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MaxmumActivity extends Activity {
 
@@ -34,7 +35,14 @@ public class MaxmumActivity extends Activity {
         startButton.setOnClickListener(new OnClickListener(){
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
+				if(threadNum.getText().toString().trim().equals("")){
+					durationMessage.setText("please input a Thread Number !");
+					Toast.makeText(MaxmumActivity.this, "please input a Thread Number", Toast.LENGTH_LONG).show();
+				}else{
+					threadNumber = Integer.parseInt(threadNum.getText().toString());
+					durationMessage.setText("there are " + Integer.toString(threadNumber) + 
+							" threads ." + "duration is:" + Long.toString(duration));
+				}
 				
 			}
         });
