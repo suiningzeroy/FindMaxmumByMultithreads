@@ -2,9 +2,15 @@ package ian.practice.findmaxmumbymutithreads;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+
 import android.os.Bundle;
 import android.app.Activity;
 import android.view.Menu;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 
 public class MaxmumActivity extends Activity {
 
@@ -22,6 +28,16 @@ public class MaxmumActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maxmum);
+        final EditText threadNum = (EditText) findViewById(R.id.ThreadNum);
+        final TextView durationMessage = (TextView) findViewById(R.id.DurationInfo);
+        Button startButton = (Button) findViewById(R.id.Start);
+        startButton.setOnClickListener(new OnClickListener(){
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				
+			}
+        });
 
     }
 
