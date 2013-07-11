@@ -19,6 +19,7 @@ import android.widget.Toast;
 public class MaxmumActivity extends Activity {
 
 	int threadNumber;
+	CountDownLatch startSignal = new CountDownLatch(1);
     CountDownLatch doneSignal;
     ExecutorService executor;
     int[] largeArray = new int[9];
@@ -45,16 +46,16 @@ public class MaxmumActivity extends Activity {
 					threadNumber = Integer.parseInt(threadNum.getText().toString());
 					doneSignal = new CountDownLatch(threadNumber);
 	        		executor = Executors.newFixedThreadPool(threadNumber);
-	        		result = new int[threadNumber]; 
-	        		startTime = System.currentTimeMillis();
-	        		largeArray = initialLargeArray(10000);
+	        		result = new int[threadNumber]; 	 
+	        		
+	        		largeArray = initialLargeArray(150000);
+	        		startTime = System.nanoTime();//System.currentTimeMillis();	   
 	        		int maxmum = FindMaxmumInLargeArray(largeArray);
-	        		endTime = System.currentTimeMillis();
-	        		duration = endTime - startTime;
-					
+	        		endTime = System.nanoTime();//System.currentTimeMillis();
+	        		duration = endTime - startTime;					
 					durationMessage.setText("there are " + Integer.toString(threadNumber) + " threads ." 
-							+ "Maxmum is " + Integer.toString(maxmum) 
-							+ ". duration is:" + Long.toString(duration));
+											+ "Maxmum is " + Integer.toString(maxmum) 
+											+ ". duration is:" + Long.toString(duration));
 				}
 				
 			}
@@ -71,31 +72,28 @@ public class MaxmumActivity extends Activity {
     
     private int FindMaxmumInLargeArray(int[] largeArray){
     	int maxmum = 0 ;
-    	String s = null;
-    	int[][] dividedArray = DividLargeArrayIntoSmallOnes(largeArray,threadNumber);
-    	/*for (int i=0; i < dividedArray.length; i++){
-    		s =  s + Arrays.toString(dividedArray[i]) + "|";
-    	}
-    	System.out.println("large array is " + Arrays.toString(largeArray));
-    	System.out.println("dividedArray is "+ s);*/
+    	int[] range = new int[2];
+    	int sectionLength = largeArray.length/threadNumber;
     	  for (int i = 0; i < threadNumber; ++i) // create and start threads
           {
-          	executor.execute(new Thread(new Worker(i,dividedArray[i],doneSignal)));
+    		range[0] = i*sectionLength;
+    	//	System.out.println(Integer.toString(i)+"--range0 = "+ Integer.toString(range[0]));
+    		if(i != threadNumber-1){
+    			range[1] = ((i+1)*sectionLength)-1;
+    		}else{
+    			range[1] = largeArray.length-1;
+    		}
+    	//	System.out.println(Integer.toString(i)+ "---range1 = "+ Integer.toString(range[1]));
+          	executor.execute(new Thread(new Worker(i,range,startSignal,doneSignal)));
           }
-    	  
+    	  startSignal.countDown();
     	  try {
 	    		  doneSignal.await();
 	  		} catch (InterruptedException e) {
 	  			e.printStackTrace();
 	  		} 
-          
-          System.out.println("all done");
-          for(int i = 0; i < result.length; i++){
-          	System.out.println(result[i]);
-          }
-          
-          maxmum = FindMaxmunInArray(result);
-    	  
+           maxmum = FindMaxmunInArray(result);
+                   	  
     	return maxmum;
     }
     
@@ -110,34 +108,6 @@ public class MaxmumActivity extends Activity {
     	return largeArray;
     }
     
-    private int[][] DividLargeArrayIntoSmallOnes(int[] input,int count){
-    	int numberOfElements = getArrayElementsNumber(input,count);
-    	int[][] dividedArray = new int[count][numberOfElements];
-    	for(int i=0; i < count; i++){
-    		if (i != count - 1){
-    			dividedArray[i] = Arrays.copyOfRange(input, i*numberOfElements, ((i+1)*numberOfElements));
-    		}else{
-    			dividedArray[i] = Arrays.copyOfRange(input, i*numberOfElements, input.length);
-    		}
-    	}
-    	return dividedArray;
-    }
-    
-    private int getArrayElementsNumber(int[] input,int count){   	
-    	int numberOfElements = 0;
-    	
-    	if(input.length%count==0){
-    		numberOfElements = input.length/count;
-    	}
-    	else{
-    		 numberOfElements = input.length/count + 1;
-    	}
-    	
-    	System.out.println("numberOfElements is " + Integer.toString(numberOfElements));
-    	
-    	return numberOfElements;
-    }
-    
 	private int FindMaxmunInArray(int[] inputArray){
 		int maxmum = 0;
 	
@@ -148,26 +118,50 @@ public class MaxmumActivity extends Activity {
 		return maxmum;
 		
 	}
+	
+	private int FindMaxmunInSetionOfArray(int[] sectionRange, int[] inputArray)
+	{
+		int maxmum = 0;
+		int rangeLength = sectionRange[1]-sectionRange[0];
+		
+		for(int i=0; i < rangeLength; i++){
+			if(inputArray[i]> maxmum)
+				maxmum = inputArray[i];
+		}
+		
+		return maxmum;
+		
+	}
+	
     
 	class Worker implements Runnable {
     	private final CountDownLatch doneSignal;
-    	private int[] input;
+    	private final CountDownLatch startSignal;
+    	private int[] range;
     	private int resultIndex = 0;
     	private int maxValue;
     	
-    	Worker(int n, int[] inputArray, CountDownLatch doneSignal) {
+    	Worker(int n, int[] range, CountDownLatch startSignal,CountDownLatch doneSignal) {
     		this.doneSignal = doneSignal;
-    		this.input =  inputArray;  
+    		this.startSignal = startSignal;
     		this.resultIndex = n;
+    		this.range = range;
     	}   	
 
 
 		@Override
 		public void run() {
-			maxValue = FindMaxmunInArray(input);
-			writeMaxmumToResult(maxValue);
-			System.out.println("Thread" + Integer.toString(resultIndex));
-			doneSignal.countDown();
+			try {
+				startSignal.await();
+			
+				maxValue = FindMaxmunInSetionOfArray(range,largeArray);
+				writeMaxmumToResult(maxValue);
+				System.out.println("Thread" + Integer.toString(resultIndex));
+				doneSignal.countDown();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		private void writeMaxmumToResult(int value){

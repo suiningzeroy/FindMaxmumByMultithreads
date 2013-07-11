@@ -22,7 +22,7 @@
         android:id="@+id/Start"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/start" />
+        android:text= "@string/start"/>
 
     <TextView
         android:id="@+id/DurationInfo"
